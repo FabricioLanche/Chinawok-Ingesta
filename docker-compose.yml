@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chinawok-ingestion-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montar credenciales AWS desde el host
+      - ~/.aws:/root/.aws:ro
+    env_file:
+      - .env
+    environment:
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - TABLE_LOCALES=${TABLE_LOCALES}
+      - TABLE_USUARIOS=${TABLE_USUARIOS}
+      - TABLE_PRODUCTOS=${TABLE_PRODUCTOS}
+      - TABLE_EMPLEADOS=${TABLE_EMPLEADOS}
+      - TABLE_COMBOS=${TABLE_COMBOS}
+      - TABLE_PEDIDOS=${TABLE_PEDIDOS}
+      - TABLE_OFERTAS=${TABLE_OFERTAS}
+      - TABLE_RESENAS=${TABLE_RESENAS}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - chinawok-network
+
+networks:
+  chinawok-network:
+    driver: bridge
