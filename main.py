@@ -94,14 +94,17 @@ async def ingest_all_tables():
 
     results = []
     errors = []
+    total_records = 0
 
     for table_name in tables:
         try:
             print(f"Procesando tabla: {table_name}", file=sys.stderr)
 
+            # Extraer datos directamente del servicio
             items = dynamodb_service.scan_table(table_name)
 
             if items:
+                # Subir a S3
                 s3_url = s3_service.upload_jsonl(items, "dynamodb", table_name)
                 results.append({
                     "table": table_name,
@@ -109,22 +112,35 @@ async def ingest_all_tables():
                     "records": len(items),
                     "s3_location": s3_url
                 })
+                total_records += len(items)
                 print(f"✓ {table_name}: {len(items)} registros subidos", file=sys.stderr)
             else:
                 results.append({
                     "table": table_name,
                     "status": "empty",
-                    "records": 0
+                    "records": 0,
+                    "s3_location": None
                 })
                 print(f"⚠ {table_name}: tabla vacía", file=sys.stderr)
 
         except Exception as e:
-            error_msg = f"Error en {table_name}: {str(e)}"
-            errors.append(error_msg)
-            print(f"✗ {error_msg}", file=sys.stderr)
+            error_msg = f"{table_name}: {str(e)}"
+            errors.append({
+                "table": table_name,
+                "error": str(e)
+            })
+            results.append({
+                "table": table_name,
+                "status": "error",
+                "records": 0,
+                "s3_location": None
+            })
+            print(f"✗ Error en {table_name}: {str(e)}", file=sys.stderr)
 
     return {
         "status": "completed" if not errors else "completed_with_errors",
+        "total_records": total_records,
+        "tables_processed": len(tables),
         "results": results,
         "errors": errors if errors else None,
         "timestamp": datetime.now().isoformat()
