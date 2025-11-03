@@ -19,7 +19,7 @@ RUN apt-get update && \
 COPY requirements.txt .
 
 # Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Crear directorio para credenciales AWS
 RUN mkdir -p /root/.aws
