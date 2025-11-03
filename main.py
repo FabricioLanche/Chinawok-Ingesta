@@ -28,6 +28,7 @@ async def root():
         "timestamp": datetime.now().isoformat()
     }
 
+
 @app.post("/ingest/all")
 async def ingest_all_tables():
     """
@@ -91,6 +92,7 @@ async def ingest_all_tables():
         "errors": errors if errors else None,
         "timestamp": datetime.now().isoformat()
     }
+
 
 @app.post("/ingest/{table_name}")
 async def ingest_table(table_name: str):

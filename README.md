@@ -113,14 +113,26 @@ curl -X POST http://localhost:8000/ingest/all
 
 ## Formato de Salida
 
-Los datos se almacenan en S3 con la siguiente estructura:
+Los datos se almacenan en S3 con la siguiente estructura simplificada:
 
 ```
-s3://bucket-name/
-└── dynamodb/
-    └── {tabla}/
-        └── year=YYYY/month=MM/day=DD/
-            └── {tabla}_YYYYMMDD_HHMMSS.json
+s3://chinawok-data/
+├── locales/
+│   └── locales_20251102_143000.json
+├── usuarios/
+│   └── usuarios_20251102_143001.json
+├── productos/
+│   └── productos_20251102_143002.json
+├── empleados/
+│   └── empleados_20251102_143003.json
+├── combos/
+│   └── combos_20251102_143004.json
+├── pedidos/
+│   └── pedidos_20251102_143005.json
+├── ofertas/
+│   └── ofertas_20251102_143006.json
+└── resenas/
+    └── resenas_20251102_143007.json
 ```
 
 Formato: **JSONL (JSON Lines)** - cada línea es un objeto JSON independiente, compatible con Athena.

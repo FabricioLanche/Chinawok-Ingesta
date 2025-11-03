@@ -56,7 +56,7 @@ class S3Service:
 
         Args:
             items: Lista de documentos/items
-            database_name: Nombre de la base de datos (ej: 'dynamodb')
+            database_name: Nombre de la base de datos (no se usa, por compatibilidad)
             table_name: Nombre de la tabla
 
         Returns:
@@ -64,9 +64,8 @@ class S3Service:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # Formato de ruta para particionamiento por fecha (compatible con Athena)
-        date_partition = datetime.now().strftime("year=%Y/month=%m/day=%d")
-        s3_key = f"{database_name}/{table_name}/{date_partition}/{table_name}_{timestamp}.json"
+        # Estructura simplificada: tabla/archivo.json
+        s3_key = f"{table_name}/{table_name}_{timestamp}.json"
 
         try:
             # Convertir a formato JSONL (una línea JSON por documento)
@@ -115,15 +114,14 @@ class S3Service:
 
         Args:
             items: Lista de documentos/items
-            database_name: Nombre de la base de datos
+            database_name: Nombre de la base de datos (no se usa, por compatibilidad)
             table_name: Nombre de la tabla
 
         Returns:
             URL S3 del archivo subido
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        date_partition = datetime.now().strftime("year=%Y/month=%m/day=%d")
-        s3_key = f"{database_name}/{table_name}/{date_partition}/{table_name}_{timestamp}_array.json"
+        s3_key = f"{table_name}/{table_name}_{timestamp}_array.json"
 
         try:
             # Convertir a JSON estándar (array)
