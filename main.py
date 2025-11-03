@@ -28,60 +28,6 @@ async def root():
         "timestamp": datetime.now().isoformat()
     }
 
-
-@app.post("/ingest/{table_name}")
-async def ingest_table(table_name: str):
-    """
-    Extrae datos de una tabla DynamoDB específica y los sube a S3
-
-    Args:
-        table_name: Nombre de la tabla (locales, usuarios, productos, etc.)
-    """
-    try:
-        # Validar nombre de tabla
-        valid_tables = [
-            "locales", "usuarios", "productos", "empleados",
-            "combos", "pedidos", "ofertas", "resenas"
-        ]
-
-        if table_name.lower() not in valid_tables:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Tabla no válida. Tablas disponibles: {', '.join(valid_tables)}"
-            )
-
-        print(f"Iniciando ingesta de tabla: {table_name}", file=sys.stderr)
-
-        # Extraer datos de DynamoDB
-        items = dynamodb_service.scan_table(table_name)
-
-        if not items:
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "message": f"Tabla {table_name} está vacía",
-                    "records_extracted": 0
-                }
-            )
-
-        print(f"✓ Extraídos {len(items)} registros de {table_name}", file=sys.stderr)
-
-        # Subir a S3 en formato Athena (JSONL - una línea por documento)
-        s3_url = s3_service.upload_jsonl(items, "dynamodb", table_name)
-
-        return {
-            "status": "success",
-            "table": table_name,
-            "records_extracted": len(items),
-            "s3_location": s3_url,
-            "timestamp": datetime.now().isoformat()
-        }
-
-    except Exception as e:
-        print(f"✗ Error en ingesta de {table_name}: {str(e)}", file=sys.stderr)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.post("/ingest/all")
 async def ingest_all_tables():
     """
@@ -145,6 +91,58 @@ async def ingest_all_tables():
         "errors": errors if errors else None,
         "timestamp": datetime.now().isoformat()
     }
+
+@app.post("/ingest/{table_name}")
+async def ingest_table(table_name: str):
+    """
+    Extrae datos de una tabla DynamoDB específica y los sube a S3
+
+    Args:
+        table_name: Nombre de la tabla (locales, usuarios, productos, etc.)
+    """
+    try:
+        # Validar nombre de tabla
+        valid_tables = [
+            "locales", "usuarios", "productos", "empleados",
+            "combos", "pedidos", "ofertas", "resenas"
+        ]
+
+        if table_name.lower() not in valid_tables:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Tabla no válida. Tablas disponibles: {', '.join(valid_tables)}"
+            )
+
+        print(f"Iniciando ingesta de tabla: {table_name}", file=sys.stderr)
+
+        # Extraer datos de DynamoDB
+        items = dynamodb_service.scan_table(table_name)
+
+        if not items:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": f"Tabla {table_name} está vacía",
+                    "records_extracted": 0
+                }
+            )
+
+        print(f"✓ Extraídos {len(items)} registros de {table_name}", file=sys.stderr)
+
+        # Subir a S3 en formato Athena (JSONL - una línea por documento)
+        s3_url = s3_service.upload_jsonl(items, "dynamodb", table_name)
+
+        return {
+            "status": "success",
+            "table": table_name,
+            "records_extracted": len(items),
+            "s3_location": s3_url,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        print(f"✗ Error en ingesta de {table_name}: {str(e)}", file=sys.stderr)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/health")
