@@ -24,7 +24,7 @@ provider:
 
 functions:
   ingestTable:
-    handler: src.handlers.ingest_table.handler
+    handler: ingesta.ingest_table.handler
     description: Ingesta datos de una tabla específica de DynamoDB a S3
     events:
       - http:
@@ -36,7 +36,7 @@ functions:
                 tableName: true
   
   ingestAllTables:
-    handler: src.handlers.ingest_all_tables.handler
+    handler: ingesta.ingest_all_tables.handler
     description: Ingesta datos de todas las tablas de DynamoDB a S3
     events:
       - http:
