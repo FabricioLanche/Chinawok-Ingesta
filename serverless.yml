@@ -1,0 +1,58 @@
+org: flanche
+service: chinawok-ingesta
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.12
+  memorySize: 512
+  timeout: 300
+  region: us-east-1
+  
+  environment:
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+    TABLE_LOCALES: ${env:TABLE_LOCALES}
+    TABLE_USUARIOS: ${env:TABLE_USUARIOS}
+    TABLE_PRODUCTOS: ${env:TABLE_PRODUCTOS}
+    TABLE_EMPLEADOS: ${env:TABLE_EMPLEADOS}
+    TABLE_COMBOS: ${env:TABLE_COMBOS}
+    TABLE_PEDIDOS: ${env:TABLE_PEDIDOS}
+    TABLE_OFERTAS: ${env:TABLE_OFERTAS}
+    TABLE_RESENAS: ${env:TABLE_RESENAS}
+  
+  iam:
+    role: arn:aws:iam::${env:AWS_ACCOUNT_ID}:role/LabRole
+
+functions:
+  ingestTable:
+    handler: src/handlers/ingest_table.handler
+    description: Ingesta datos de una tabla específica de DynamoDB a S3
+    events:
+      - http:
+          path: ingest/{tableName}
+          method: post
+          request:
+            parameters:
+              paths:
+                tableName: true
+  
+  ingestAllTables:
+    handler: src/handlers/ingest_all_tables.handler
+    description: Ingesta datos de todas las tablas de DynamoDB a S3
+    events:
+      - http:
+          path: ingest/all
+          method: post
+      - schedule:
+          rate: cron(0 2 * * ? *)
+          enabled: false
+          description: Ejecuta ingesta diaria a las 2 AM UTC
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    layer: true
