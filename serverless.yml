@@ -47,9 +47,6 @@ functions:
           enabled: false
           description: Ejecuta ingesta diaria a las 2 AM UTC
 
-plugins:
-  - serverless-python-requirements
-
 custom:
   pythonRequirements:
     dockerizePip: true
