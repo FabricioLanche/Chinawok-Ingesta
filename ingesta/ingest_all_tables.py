@@ -37,21 +37,15 @@ def handler(event, context):
             items = get_table_data(dynamodb_table)
             logger.info(f'Obtenidos {len(items)} items de {dynamodb_table}')
             
-            # Preparar datos para S3
+            # Preparar ruta S3
             s3_key = f'ingesta/{table_key}/{timestamp}.json'
             
-            data = {
-                'table_name': dynamodb_table,
-                'extracted_at': timestamp,
-                'record_count': len(items),
-                'data': items
-            }
-            
-            # Subir a S3
-            upload_to_s3(bucket, s3_key, data)
+            # Subir datos directamente a S3 (sin wrapper)
+            upload_to_s3(bucket, s3_key, items)
             
             results.append({
                 'table': table_key,
+                'dynamodb_table': dynamodb_table,
                 'records': len(items),
                 's3_location': f's3://{bucket}/{s3_key}',
                 'status': 'success'
@@ -81,7 +75,7 @@ def handler(event, context):
     if errors:
         response_body['errors'] = errors
     
-    status_code = 200 if not errors else 207  # 207 Multi-Status si hay errores parciales
+    status_code = 200 if not errors else 207
     
     logger.info(f'Ingesta completada: {len(results)} exitosas, {len(errors)} fallidas')
     

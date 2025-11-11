@@ -8,20 +8,22 @@ s3 = boto3.client('s3')
 
 def upload_to_s3(bucket, key, data):
     """
-    Sube datos JSON a S3
+    Sube datos JSON a S3 en formato JSON Lines (JSONL)
+    Cada objeto se guarda en una línea separada para mejor compatibilidad con Glue/Athena
     
     Args:
         bucket (str): Nombre del bucket S3
         key (str): Key del objeto en S3
-        data (dict): Datos a subir
+        data (list): Lista de objetos a subir
     """
     try:
-        json_data = json.dumps(data, indent=2, ensure_ascii=False)
+        # Convertir a JSON Lines (cada objeto en una línea)
+        jsonl_data = '\n'.join([json.dumps(item, ensure_ascii=False) for item in data])
         
         s3.put_object(
             Bucket=bucket,
             Key=key,
-            Body=json_data.encode('utf-8'),
+            Body=jsonl_data.encode('utf-8'),
             ContentType='application/json',
             ServerSideEncryption='AES256'
         )
